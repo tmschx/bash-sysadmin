@@ -6,6 +6,8 @@
 ## Created on 24 AUG 2014
 ## Version 1.1 dated 10 JUL 2015
 ##	- added trim for the root filesystem on a solid state drive
+## VErsion 1.2 dated 02 SEP 2017
+##	- replaced 'apt-get' with 'apt' where possible
 ##
 
 # Set variables and default values
@@ -33,7 +35,7 @@ fi
 # Step 1: update 
 printf "==== STEP 1. Update: resynchronizing the package index files from their sources
  specified in /etc/apt/sources.list; this may take a few moments...\n"
-apt-get update -qq; ERRORCODE=$?
+apt update; ERRORCODE=$?
 if [[ ${ERRORCODE} != 0 ]]; then
 	printf " ** Error occured while updating package index files. "
 	checktocontinue
@@ -65,7 +67,7 @@ fi
 # Step 4: Upgrade
 printf "==== STEP 4. Upgrade: installing the newest versions of all packages currently installed
  on the system from the sources in /etc/apt/sources.list.\n"
-apt-get upgrade; ERRORCODE=$?
+apt upgrade; ERRORCODE=$?
 if [[ ${ERRORCODE} != 0 ]]; then
 	printf " ** Error occured while upgrading software packages."
 	checktocontinue
@@ -77,7 +79,7 @@ sync
 # Step 5: Autoremove
 printf "==== STEP 5. Autoremove: removing packages that were automatically installed to satisfy
  dependencies for other packages and that are now no longer needed.\n"
-apt-get autoremove; ERRORCODE=$?
+apt autoremove; ERRORCODE=$?
 if [[ ${ERRORCODE} != 0 ]]; then
 	printf " ** Error occured while removing unused packages without dependencies. "
 	checktocontinue
