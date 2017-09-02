@@ -35,7 +35,7 @@ fi
 # Step 1: update 
 printf "==== STEP 1. Update: resynchronizing the package index files from their sources
  specified in /etc/apt/sources.list; this may take a few moments...\n"
-apt update; ERRORCODE=$?
+apt-get update -qq; ERRORCODE=$?
 if [[ ${ERRORCODE} != 0 ]]; then
 	printf " ** Error occured while updating package index files. "
 	checktocontinue
@@ -79,7 +79,7 @@ sync
 # Step 5: Autoremove
 printf "==== STEP 5. Autoremove: removing packages that were automatically installed to satisfy
  dependencies for other packages and that are now no longer needed.\n"
-apt autoremove; ERRORCODE=$?
+apt-get autoremove; ERRORCODE=$?
 if [[ ${ERRORCODE} != 0 ]]; then
 	printf " ** Error occured while removing unused packages without dependencies. "
 	checktocontinue
