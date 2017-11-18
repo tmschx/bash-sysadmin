@@ -38,7 +38,7 @@ function printhelp {
 # Set variables and do not use unset variables
 set -u
 
-ZONES="cn ru"
+ZONES="by cn in ir iq kp ng ro ru sa so sy ye"
 ZONEURL="http://www.ipdeny.com/ipblocks/data/countries"
 IPFILE="/srv/etc/zones/blacklist"
 BLACKLIST="slblacklist"
@@ -77,6 +77,7 @@ while getopts "idslh" opt; do
 			# Initialise ip tables
 			iptables -I INPUT -m set --match-set ${BLACKLIST} src -j DROP
 			iptables -I FORWARD -m set --match-set ${BLACKLIST} src -j DROP
+			printf -- "done. \n" 
 			;;
 		d)
 			# Get ip ranges from web lists and save to file
@@ -88,7 +89,8 @@ while getopts "idslh" opt; do
 				echo "# Network address ranges for ${zone} zone" >> ${IPFILE}
 				wget -q ${ZONEURL}/${zone}.zone -O - >> ${IPFILE}
   			done
-			printf -- "done.\n Saved ip ranges to: %s\n" ${IPFILE}
+			printf -- "done.\n"
+			printf -- "Saved ip ranges to: %s\n" ${IPFILE}
 			;;
 		s)
 			# Check if file with ip ranges exists
@@ -96,13 +98,11 @@ while getopts "idslh" opt; do
 				printf -- "File with ip ranges does not exist: %s. Exiting.\n" ${IPFILE}
 				exit 1
 			fi
-
-			# Empty swap list and reset counter
+			# Empty swap liast and reset counter
 			ipset flush ${BLACKLISTSWAP}
 			cnt=0
-
 			# Get ip ranges from file one by one and add to blacklist
-			printf -- "Adding ip address ranges from %s to swap list... " ${IPFILE}
+			printf -- "Adding ip address ranges from %s to swap list... \n" ${IPFILE}
 			while read iprange; do
 				cnt=$((cnt+1))
 				# Check for comment lines
@@ -110,12 +110,20 @@ while getopts "idslh" opt; do
 					ipset -exist add ${BLACKLISTSWAP} ${iprange}
 				fi
 			done < ${IPFILE}
-			printf -- "added %s entries.\n" ${cnt}
-			
+			printf -- "Added %s entries.\n" ${cnt}
 			# Swap ip lists
 			printf -- "Ready to swap %s with %s... " ${BLACKLIST} ${BLACKLISTSWAP}
 			checktocontinue
 			ipset swap ${BLACKLIST} ${BLACKLISTSWAP}
+			if [[ ${?} == 0 ]]; then
+				ipset flush ${BLACKLISTSWAP}
+			fi
+			# Make it all persistent
+			printf -- "Saving iptables and ipset configuration in /etc/iptables... "
+			ipset save > /etc/iptables/rules.ipset
+			iptables-save > /etc/iptables/rules.v4
+			printf -- "done. \n"
+			printf -- "Please make sure the configuration is restored at startup.\n"
 			;;
 		l)
 			# List blacklists
