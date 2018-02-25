@@ -4,7 +4,7 @@
 ## Perform system checks
 ##
 ## Created on 25 MEI 2013
-## Version 1.0 dated 21 FEB 2015
+## Version 1.1 dated 25 FEB 2018
 ##
 ## Arguments:
 ##	-v : verbose
@@ -53,7 +53,7 @@ while getopts "f:vph" opt; do
        ;;
      \? | h)
        printf -- "Usage: %s [-h] [-v] [-p]\n" "${0##*/}"
-       printf -- "          [-f core | storage | network | security | web | database | pim | media]\n"
+       printf -- "          [-f core | storage | network | security | services]\n"
        printf -- "   -h   Help: show this help message and exit.\n"
        printf -- "   -v   Verbose mode: script will provide more detailed information.\n"
        printf -- "   -p   Pause mode: script will wait after each system function check.\n"
@@ -168,7 +168,8 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "core" ]]; then
    if [[ -x /usr/bin/virsh ]]; then
       printf " == Virtual machine hosting service: "
       if [[ -x "/usr/sbin/service" ]]; then
-         service libvirt-bin status
+         service libvirt-bin status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+		 printf "\n"
        else
          printf "\n  * ERROR: cannot execute 'service' to obtain virtual machine hosting service status.\n"
       fi
@@ -225,9 +226,10 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "storage" ]]; then
 
   # Samba status, requires 'samba' (duhhh)
    if [[ -x "/usr/bin/smbstatus" ]]; then
-      printf " == Samba file server (%s): " "$(smbstatus -V)"
+      printf " == Samba file server (%s): " "$(smbd -V)"
       if [[ -x "/usr/sbin/service" ]]; then
-         service smbd status
+         service smbd status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+		 printf "\n"
        else
          printf "\n  * ERROR: cannot execute 'service' to obtain Samba service status.\n"
       fi
@@ -285,7 +287,8 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "network" ]]; then
   # DHCP Server: isc-dhcp-server
    printf " == Dynamic Host Confguration Protocol (DHCP) server: "
    if [[ -x "/usr/sbin/service" ]]; then
-      service isc-dhcp-server status
+      service isc-dhcp-server status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+	  printf "\n"
     else
       printf "\n  * ERROR: cannot execute 'service' to obtain DHCP server status.\n"
    fi
@@ -293,7 +296,8 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "network" ]]; then
   # DNS Server: bind9
    printf " == Domain Name System (DNS) server: "
    if [[ -x "/usr/sbin/service" ]]; then
-      service bind9 status
+      service bind9 status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+	  printf "\n"
     else
       printf "'\n  * ERROR: cannot execute 'service' to obtain DNS server status.\n"
    fi
@@ -301,8 +305,9 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "network" ]]; then
   # NTP Server
    printf " == Network Time Protocol (NTP) server: "
    if [[ -x "/usr/sbin/service" ]]; then
-      service ntp status
-    else
+      service ntp status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+	  printf "\n"
+    else 
       printf "\n  * ERROR: cannot execute 'service' to obtain NTP server status.\n"
    fi
    if [[ ${F_VERBOSE} == TRUE ]]; then
@@ -340,7 +345,8 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "security" ]]; then
   # Firewall
       printf " == Firewall status: "
       if [[ -x "/usr/sbin/service" ]]; then
-         service ufw status
+         service ufw status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+		 printf "\n"
        else
          printf "\n  * ERROR: cannot execute 'service' to obtain status.\n"
       fi
@@ -355,52 +361,43 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "security" ]]; then
       printf " ** Notice: not root; cannot check further security status.\n"
    fi
 
+pause
 fi
 
 #### WEB SERVICES
-if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "web" ]]; then
-   printf "==== CHECK 5. WEB SERVICES \n"
+if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "services" ]]; then
+   printf "==== CHECK 5. SERVICES \n"
 
   # Apache Server
    if [[ -x "/usr/sbin/apache2" ]]; then
       printf " == Apache web server (%s): " "$(apache2 -v | grep version)"
       if [[ -x "/usr/sbin/service" ]]; then
-         service apache2 status
+         service apache2 status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+		 printf "\n"
        else
          printf "\n  * ERROR: cannot execute 'service' to obtain Apache web server status.\n"
       fi
      else
       printf " ** Notice: cannot execute 'apache2' to check Apache web server status.\n"
    fi
-  # Pound reverse proxy 
+
+   # Pound reverse proxy 
    printf " == Pound reverse proxy server: "
    if [[ -x "/usr/sbin/service" ]]; then
-      service pound status
+      service pound status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+	  printf "\n"
     else
       printf "\n  * ERROR: cannot execute 'service' to obtain Pound proxy server status)\n"
    fi
 
-pause
-fi
-
-#### DATABASE
-if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "database" ]]; then
-   printf "==== CHECK 6. DATABASE \n"
-
   # MySQL Server
    printf " == MySQL database server: "
    if [[ -x "/usr/sbin/service" ]]; then
-      service mysql status
+      service mysql status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+	  printf "\n"
     else
       printf "\n  * ERROR: cannot execute 'service' to obtain MySQL server status)\n"
    fi
-
-pause
-fi
-
-#### E-MAIL and PIM
-if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "pim" ]]; then
-   printf "==== CHECK 7. E-MAIL & PIM \n"
 
   # PIM Service
    printf " ** Notice: contacts & calender are provided by the ownCloud web service\n"
@@ -408,33 +405,24 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "pim" ]]; then
   # E-mail Service
    printf " ** Notice: no e-mail service configured\n"
 
-fi
-
-#### MEDIA
-if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "media" ]]; then
-   printf "==== CHECK 8. MEDIA \n"
-
   # DLNA Server
-   if [[ -x "/usr/bin/minidlnad" ]]; then
+   if [[ -x "/usr/sbin/minidlnad" ]]; then
       printf " == DLNA media server (%s): " "$(minidlnad -V | grep Version)"
       if [[ -x "/usr/sbin/service" ]]; then
-         service minidlna status
+         service minidlna status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+		 printf "\n"
        else
          printf "\n  * ERROR: cannot execute 'service' to obtain DLNA server status)\n"
       fi
     else
       printf " ** Notice: cannot execute 'minidlnad' to check DLNA media server status.\n"
    fi
-fi
-
-#### DOMOTICA
-if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "domo" ]]; then
-   printf "==== CHECK 9. DOMOTICA \n"
 
   # OpenHAB Server
    printf " == OpenHAB domotica server: "
    if [[ -x "/usr/sbin/service" ]]; then
-      service openhab status
+      service openhab status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+	  printf "\n"
     else
       printf "\n  * ERROR: cannot execute 'service' to obtain OpenHAB server status)\n"
    fi
