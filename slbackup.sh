@@ -9,6 +9,8 @@
 ##	- added checksum generation using faster CRC checksum (instead of a secure hash)
 ##	- added help message explaining all options and defaults
 ##	- minor improvements and code cleanup
+## Version 1.4 dated 14 MAY 2018
+##  - made checksum optional
 ##
 
 # Set variables; all other variables are kept unset on purpose!
@@ -16,6 +18,7 @@ set -u
 F_BUTEST=FALSE			# Script test flag
 F_BUENCRYPT=TRUE		# Encrypt backups by default
 F_BUREMOVE=FALSE		# Do not remove old backups by default
+F_CHECKSUM=FALSE		# Do not calculate checksum
 BULOGFILE="/var/log/backup"	# Logfile
 BUKEYFILE="/etc/bukey"		# Password file
 BUCONFIGFILE="/etc/backups"	# Default configuration file
@@ -38,7 +41,8 @@ while getopts "c:d:m:i:nrht" opt; do
 		printf -- "  -i  Specify a single item to backup, which must listed in the configuration file. Default is all items.\n"
 		printf -- "  -d  Specify a backup device, if not yet mounted.\n"
 		printf -- "  -m  Specify mountpoint to use. Default is %s.\n" ${BUMOUNTPOINT}
-		printf -- "  -n  Do NOT encrypt backup archives. Default is 128 bit AES encryption using OpenPGP.\n"
+		printf -- "  -s  Calculate CRC checksum of the backup usin 'cksum'. Default is no checksum.\n"
+		printf -- "  -n  Do NOT encrypt backup archives. Default is 128-bit AES encryption using OpenPGP.\n"
 		printf -- "       The encryption password should be in %s.\n" ${BUKEYFILE}
 		printf -- "  -r  Remove old backup archives from backup device after each succesful backup.\n"
 		printf -- "  -h  Print this help message and exit.\n"
@@ -64,7 +68,11 @@ while getopts "c:d:m:i:nrht" opt; do
 		;;
 	  n)
 		F_BUENCRYPT=FALSE
-		printf -- "Encryption disabled as specified with -n.\n"
+		printf -- "Encryption disabled with -n.\n"
+		;;
+	  s)
+		F_CHECKSUM=TRUE
+		printf -- "Checksum calculation enabled with -s.\n"
 		;;
 	  i)
 		BUITEM=${OPTARG}
@@ -322,7 +330,7 @@ for BUITEM in ${L_BUITEMS}; do
 		fi
 		
 		# Calculate checksum
-		if [[ ${F_BUSUCCESS} == TRUE && ${F_BUTEST} == FALSE ]]
+		if [[ ${F_CHECKSUM} == TRUE && ${F_BUSUCCESS} == TRUE && ${F_BUTEST} == FALSE ]]
 		  then
 			printf " Calculating checksum for %s (might take a while)..." ${BUFILE} | tee -a "${BULOGFILE}"
 			echo >> ${BULOGFILE}
@@ -423,7 +431,7 @@ if [[ -e ${BUCHECKSUMFILE1} ]]
 	fi
   else
 	# No checksum file exists.
-	printf "No checksum file created, probably because no backup archives were created.\n" | tee -a "${BULOGFILE}"
+	printf "No checksum file created.\n" | tee -a "${BULOGFILE}"
 fi
 
 # Done. Print content summary. 
