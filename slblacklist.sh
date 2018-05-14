@@ -4,6 +4,9 @@
 ## Download and set ip-ranges to block using ipset
 ##
 ## Created on 18 NOV 2017
+## Version 1.1 dated 14 MAY 2018
+##  - create /srv/etc/zones if not existing
+##  - updated help message
 ##
 ## Arguments:
 ##  -i: initialise iptables and ipset 
@@ -32,13 +35,14 @@ function printhelp {
 	printf -- "  -s : set blacklist for downloaded ip addresses \n"
 	printf -- "  -l : list blacklist details\n"
 	printf -- "  -h : show this help message \n"
-	printf -- "The ip ranges should be in cidr format and stored in %s.\n" ${IPFILE}
+	printf -- "The ip ranges should be in cidr format and are stored in %s.\n" ${IPFILE}
+    printf -- "Current hardcoded zones: %s.\n" "${ZONES}"
 }
 
 # Set variables and do not use unset variables
 set -u
 
-ZONES="by cn in ir iq kp ng ro ru sa so sy ye"
+ZONES="al by br cn in ir iq kp mx ng ro ru sa so su sy ye"
 ZONEURL="http://www.ipdeny.com/ipblocks/data/countries"
 IPFILE="/srv/etc/zones/blacklist"
 BLACKLIST="slblacklist"
@@ -80,7 +84,11 @@ while getopts "idslh" opt; do
 			printf -- "done. \n" 
 			;;
 		d)
-			# Get ip ranges from web lists and save to file
+            # Create directory if needed
+			if [[ ! -d $(dirname ${IPFILE}) ]]; then
+				mkdir $(dirname ${IPFILE})
+			fi
+            # Get ip ranges from web lists and save to file
 			printf  -- "Downloading zones... "
 			echo "## $(date)" > ${IPFILE}
 			echo "## Zones: ${ZONES}" >> ${IPFILE}
@@ -98,7 +106,7 @@ while getopts "idslh" opt; do
 				printf -- "File with ip ranges does not exist: %s. Exiting.\n" ${IPFILE}
 				exit 1
 			fi
-			# Empty swap liast and reset counter
+			# Empty swap list and reset counter
 			ipset flush ${BLACKLISTSWAP}
 			cnt=0
 			# Get ip ranges from file one by one and add to blacklist
@@ -120,10 +128,17 @@ while getopts "idslh" opt; do
 			fi
 			# Make it all persistent
 			printf -- "Saving iptables and ipset configuration in /etc/iptables... "
-			ipset save > /etc/iptables/rules.ipset
+			# Create directory if needed
+			if [[ ! -d "/etc/iptables" ]]; then
+				mkdir "/etc/iptables"
+			fi
+            ipset save > /etc/iptables/rules.ipset
 			iptables-save > /etc/iptables/rules.v4
 			printf -- "done. \n"
-			printf -- "Please make sure the configuration is restored at startup.\n"
+			printf -- "Make sure iptables is restored at startup,\n"
+            printf -- " e.g. by adding to '/etc/network/interfaces':\n"
+            printf -- "    pre-up /sbin/ipset restore < /etc/iptables/rules.ipset\n"
+            printf -- "    pre-up /sbin/iptables-restore < /etc/iptables/rules.v4\n"
 			;;
 		l)
 			# List blacklists
