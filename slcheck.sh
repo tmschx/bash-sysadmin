@@ -4,7 +4,7 @@
 ## Perform system checks
 ##
 ## Created on 25 MEI 2013
-## Version 1.2 dated 19 MAY 2018
+## Version 1.3 dated 01 OCT 2018
 ##
 ## Arguments:
 ##	-v : verbose
@@ -328,6 +328,17 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "network" ]]; then
             ntpq -c peers | awk 'NF { print "     "$0 }' | grep -v "==="
         fi
         
+        # Redirection Server 
+        if [[ -x $(which rinetd) ]]; then
+            printf " == Redirection Server (%s): " "$(nohup 2> /dev/null rinetd -v)"
+            service rinetd status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
+            printf "\n"
+        else
+            if [[ ${F_VERBOSE} == TRUE ]]; then
+                printf " ** Notice: cannot find and/or execute 'rinetd' to check redirection server status.\n"
+            fi
+        fi
+
     else
         printf " ** ERROR: cannot execute '/usr/sbin/service' to obtain status of network services.\n"
     fi
