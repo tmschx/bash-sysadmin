@@ -4,7 +4,7 @@
 ## Perform system checks
 ##
 ## Created on 25 MEI 2013
-## Version 1.3 dated 01 OCT 2018
+## Version 1.4 dated 12 MAR 2020
 ##
 ## Arguments:
 ##	-v : verbose
@@ -268,7 +268,14 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "network" ]]; then
             ifconfig -s | awk 'NF {print "     "$0}'
         fi
     fi
-    
+
+    # Virtual Private Network
+    if [[ -x $(which nordvpn) ]]; then
+        printf " == Virtual Private Network status:\n"
+        nordvpn status 2> /dev/null | awk 'NF {print "     "$0}'
+    fi
+        
+
     # Show open server ports
     printf " == Network connections:\n"
     if [[ -x /bin/netstat ]]; then
