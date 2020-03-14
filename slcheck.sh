@@ -269,12 +269,17 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "network" ]]; then
         fi
     fi
 
+    # External IP
+    if [[ -x $(which dig) ]]; then
+        printf " == External IP address: "
+        dig +short myip.opendns.com @resolver1.opendns.com
+    fi
+
     # Virtual Private Network
     if [[ -x $(which nordvpn) ]]; then
         printf " == Virtual Private Network status:\n"
         nordvpn status 2> /dev/null | awk 'NF {print "     "$0}'
     fi
-        
 
     # Show open server ports
     printf " == Network connections:\n"
