@@ -4,9 +4,8 @@
 ## Download and set ip-ranges to block using ipset
 ##
 ## Created on 18 NOV 2017
-## Version 1.1 dated 14 MAY 2018
-##  - create /srv/etc/zones if not existing
-##  - updated help message
+## Version 1.2 dated 15 MAR 2020
+##  - only saving iptables upon initialisation
 ##
 ## Arguments:
 ##  -i: initialise iptables and ipset 
@@ -81,7 +80,19 @@ while getopts "idslh" opt; do
 			# Initialise ip tables
 			iptables -I INPUT -m set --match-set ${BLACKLIST} src -j DROP
 			iptables -I FORWARD -m set --match-set ${BLACKLIST} src -j DROP
-			printf -- "done. \n" 
+            			# Make it all persistent
+			printf -- "Saving iptables and ipset configuration in /etc/iptables... "
+			# Create directory if needed
+			if [[ ! -d "/etc/iptables" ]]; then
+				mkdir "/etc/iptables"
+			fi
+            ipset save > /etc/iptables/rules.ipset
+			iptables-save > /etc/iptables/rules.v4
+			printf -- "done. \n"
+			printf -- "Make sure the configuration is restored at startup,\n"
+            printf -- "  e.g. by adding to '/etc/network/interfaces':\n"
+            printf -- "    pre-up /sbin/ipset restore < /etc/iptables/rules.ipset\n"
+            printf -- "    pre-up /sbin/iptables-restore < /etc/iptables/rules.v4\n"
 			;;
 		d)
             # Create directory if needed
@@ -127,18 +138,13 @@ while getopts "idslh" opt; do
 				ipset flush ${BLACKLISTSWAP}
 			fi
 			# Make it all persistent
-			printf -- "Saving iptables and ipset configuration in /etc/iptables... "
+			printf -- "Saving ipset configuration in /etc/iptables/rules.ipset... "
 			# Create directory if needed
 			if [[ ! -d "/etc/iptables" ]]; then
 				mkdir "/etc/iptables"
 			fi
             ipset save > /etc/iptables/rules.ipset
-			iptables-save > /etc/iptables/rules.v4
 			printf -- "done. \n"
-			printf -- "Make sure iptables is restored at startup,\n"
-            printf -- " e.g. by adding to '/etc/network/interfaces':\n"
-            printf -- "    pre-up /sbin/ipset restore < /etc/iptables/rules.ipset\n"
-            printf -- "    pre-up /sbin/iptables-restore < /etc/iptables/rules.v4\n"
 			;;
 		l)
 			# List blacklists
