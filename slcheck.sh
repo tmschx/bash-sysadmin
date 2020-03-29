@@ -3,26 +3,26 @@
 ## /usr/local/script/slcheck.sh
 ## Perform system checks
 ##
-## Created on 25 MEI 2013
+## Created on 25 MAY 2013
 ## Version 1.4 dated 12 MAR 2020
 ##
 ## Arguments:
-##	-v : verbose
-##	-p : pauses between system functions
-##	-f : specify system function
-##	-h : displays usage
+##  -v : verbose
+##  -p : pauses between system functions
+##  -f : specify system function
+##  -h : displays usage
 ##
 
 # Set variables and default values
 set -u
-F_VERBOSE=""			# Script verbose flag
-F_PAUSE=""				# Script pause flag
-FUNCTIONCHECK=""		# Main system function to check
-PROCSTATE=""			# Process state to check
-L_PROCSTATES="D R S T W X Z"	# List of valid process states
-L_HDDs=""			# List of local hard disks
-L_IFs=""			# List of network interfaces
-L_SWUPDATE=""		# List of updatable software packages
+F_VERBOSE=""                    # Script verbose flag
+F_PAUSE=""                      # Script pause flag
+L_HDDs=""                       # List of local hard disks
+L_IFs=""                        # List of network interfaces
+L_SWUPDATE=""                   # List of updatable software packages
+L_PROCSTATES="D R S T W X Z"    # List of valid process states
+PROCSTATE=""                    # Process state to check
+FUNCTIONCHECK=""                # Main system function to check
 
 # Define functions
 function pause() {
@@ -37,8 +37,17 @@ function countelements() {
 }
 
 # Evaluate given options using getops; set variables accordingly
-while getopts "f:vph" opt; do
+while getopts "hf:vp" opt; do
     case "$opt" in
+        \? | h)
+            printf -- "Usage: %s [-h] [-v] [-p]\n" "${0##*/}"
+            printf -- "          [-f core | storage | network | security | services]\n"
+            printf -- "   -h   Help: show this help message and exit.\n"
+            printf -- "   -v   Verbose mode: script will provide more detailed information.\n"
+            printf -- "   -p   Pause mode: script will wait after each system function check.\n"
+            printf -- "   -f   Specify system function to check.\n"
+            exit 2
+        ;;
         f)
             FUNCTIONCHECK=${OPTARG}
             printf -- "System function specified: %s\n" "${FUNCTIONCHECK}"
@@ -50,15 +59,6 @@ while getopts "f:vph" opt; do
         p)
             F_PAUSE=TRUE
             printf -- "Pause mode: script will wait after each main system function check.\n"
-        ;;
-        \? | h)
-            printf -- "Usage: %s [-h] [-v] [-p]\n" "${0##*/}"
-            printf -- "          [-f core | storage | network | security | services]\n"
-            printf -- "   -h   Help: show this help message and exit.\n"
-            printf -- "   -v   Verbose mode: script will provide more detailed information.\n"
-            printf -- "   -p   Pause mode: script will wait after each system function check.\n"
-            printf -- "   -f   Specify system function to check.\n"
-            exit 2
         ;;
         :)
             printf -- "Option -%s requires an argument. Exiting." "${OPTARG}"
@@ -268,19 +268,19 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "network" ]]; then
             ifconfig -s | awk 'NF {print "     "$0}'
         fi
     fi
-
+    
     # External IP
     if [[ -x $(which dig) ]]; then
         printf " == External IP address: "
         dig +short myip.opendns.com @resolver1.opendns.com
     fi
-
+    
     # Virtual Private Network
     if [[ -x $(which nordvpn) ]]; then
         printf " == Virtual Private Network status:\n"
         nordvpn status 2> /dev/null | awk 'NF {print "     "$0}'
     fi
-
+    
     # Show open server ports
     printf " == Network connections:\n"
     if [[ -x /bin/netstat ]]; then
@@ -340,7 +340,7 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "network" ]]; then
             ntpq -c peers | awk 'NF { print "     "$0 }' | grep -v "==="
         fi
         
-        # Redirection Server 
+        # Redirection Server
         if [[ -x $(which rinetd) ]]; then
             printf " == Redirection Server (%s): " "$(nohup 2> /dev/null rinetd -v)"
             service rinetd status | grep -E 'Active:|PID:' | awk '{print $2,$3} ' | tr '\n' ' '
@@ -350,7 +350,7 @@ if [[ -z ${FUNCTIONCHECK} || ${FUNCTIONCHECK} == "network" ]]; then
                 printf " ** Notice: cannot find and/or execute 'rinetd' to check redirection server status.\n"
             fi
         fi
-
+        
     else
         printf " ** ERROR: cannot execute '/usr/sbin/service' to obtain status of network services.\n"
     fi
