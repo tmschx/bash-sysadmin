@@ -1,5 +1,8 @@
 alias extip='dig +short myip.opendns.com @resolver1.opendns.com'
 alias vc='virsh console'
+alias printdec='printf "%d\n"'
+alias printhex='printf "%x\n"'
+alias randomhex='cat /dev/urandom | xxd -p -l'
 alias lsday='find -type f -mtime -1 | xargs ls -l'
 alias lsweek='find -type f -mtime -7 | xargs ls -l'
 alias lsmonth='find -type f -mtime -31 | xargs ls -l'
