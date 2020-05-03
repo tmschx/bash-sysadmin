@@ -40,7 +40,7 @@ function printhelp {
 
 # Set variables and do not use unset variables
 set -u
-ZONES="al by br cn in ir iq kp mx ng ro ru sa so su sy ye"
+ZONES="al af by br cn cu dj hk il in ir iq kp kz mm mr mx ng pa pk ro ru sa sd so su sy ua uz ye"
 ZONEURL="http://www.ipdeny.com/ipblocks/data/countries"
 IPFILE="/srv/etc/zones/blacklist"
 BLACKLIST="slblacklist"
