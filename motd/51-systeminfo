@@ -1,0 +1,6 @@
+#!/bin/sh
+# Display system information at login
+#
+if [ -x /usr/bin/uptime ]; then
+    printf "\nSystem uptime%s\n" "$(/usr/bin/uptime)"
+fi

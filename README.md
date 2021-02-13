@@ -1,7 +1,20 @@
-# Bash scripts for system administration
-Some bash scripts for Linux system administration tasks
+# Linux scripts for system administration
 
-This repository contains a number of bash scripts used on Ubuntu to easy some system administrations tasks. Please feel to use the scripts, use them as an example or copy the tricks you need from them. All scripts contain in-code explanation and comments (some more than others).
+Some scripts for Linux system administration tasks
+
+This repository contains a number of scripts used on Ubuntu to easy some system administrations tasks. Most scripts are for the [bash](https://en.wikipedia.org/wiki/Bash_%28Unix_shell%29) shell. Please feel to use the scripts, use them as an example or copy the tricks you need from them. All scripts contain in-code explanation and comments (some more than others).
+
+## Repository structure
+
+This repository is organised in the following three directories:
+
+* `home/` contains bash login scripts found in a user's home directory
+* `motd/` contains message-of-the-day scripts, usually found in `/etc/update-motd.d`
+* `scripts/` contains shell scripts
+
+## Shell script
+
+Overview of shell scripts in `scripts/`:
 
 | Script         | Description |
 | -------------- | ----------- |

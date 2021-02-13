@@ -1,0 +1,30 @@
+#!/bin/sh
+# Add system information to motd header
+#
+set -u
+
+SYSTYPE=""
+HOST=""
+
+# Determine system type
+if [ -x $(which lscpu) ]; then
+    SYSTYPE=$(lscpu | grep "Model name" \
+                    | awk -F ':' '{print $2}'i \
+                    | awk -F 'with' '{print $1}'i \
+                    | sed 's/^[[:space:]]*//' \
+                    | sed 's/[[:space:]]*$//')
+fi
+
+# Determine hostname with fqdn
+if [ -x $(which hostname) ]; then
+    HOST=$(hostname -f | tr -d '\n')
+fi
+
+# Print system information
+if [ -n "$HOST" ]; then 
+    printf "  running on"
+    if [ -n "$SYSTYPE" ]; then
+        printf " %s" "$SYSTYPE"
+    fi
+    printf " host system %s\n" "$HOST"
+fi
